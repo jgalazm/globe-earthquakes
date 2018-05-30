@@ -42,17 +42,25 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     skyAtmosphere: false,
     navigationHelpButton: false,
     navigationInstructionsInitiallyVisible: false,
-    skyBox: false
+    skyBox: false,
+    preserveDrawingBuffer:true
 });
 
-    
+
+a = document.createElement('a');
+a.download = 'asd';     
+image = viewer.scene.canvas.toDataURL("image/png")
+            .replace("image/png", "image/octet-stream");
+a.setAttribute("href", image);
+a.click();
 
 var baseQueryString = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson"
 var startTime = "&starttime=1990-01-01"
 var endTime = "&endtime=2116-12-31"
-var minMagnitudeString = "&minmagnitude=6.0"
+var minMagnitudeString = "&minmagnitude=6.5"
+var maxMagnitudeString = "&maxmagnitude=10"
 var productType = "&producttype=moment-tensor"
-var qString = baseQueryString + startTime + endTime + minMagnitudeString
+var qString = baseQueryString + startTime + endTime + minMagnitudeString +maxMagnitudeString
 
 rmax = 15;
 Mwmax = 7;
@@ -141,5 +149,5 @@ viewer.clock.onTick.addEventListener(() => {
     var dt = viewer.canvas.toDataURL('image/png');
     dl.href = dt;
     dl.download='canvas';
-    dl.click();
+    // dl.click();
 });
