@@ -45,14 +45,10 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     skyBox: false,
     preserveDrawingBuffer:true
 });
+// viewer.camera.rotateUp(0.4);
 
+// cameraPos = viewer.camera.positionCartographic;
 
-a = document.createElement('a');
-a.download = 'asd';     
-image = viewer.scene.canvas.toDataURL("image/png")
-            .replace("image/png", "image/octet-stream");
-a.setAttribute("href", image);
-a.click();
 
 var baseQueryString = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson"
 var startTime = "&starttime=1990-01-01"
@@ -144,61 +140,46 @@ dl.addEventListener('click', dlCanvas, false);
 
 viewer.clock.onTick.addEventListener(() => {
     viewer.camera.rotateRight(-0.01);
-
-    // let canvas = document.getElementById('')
-    var dt = viewer.canvas.toDataURL('image/png');
-    dl.href = dt;
-    dl.download='canvas';
-    // dl.click();
+    viewer.scene.postRender.addEventListener(takeScreenshot);
 });
 
-
 // solucion posible: https://groups.google.com/forum/#!topic/cesium-dev/FdQk03zgOMI
-// Hi, 
-
-// we had the same problem some time ago and solved it with the following code snippet: Maybe this will help you.
-
 // // configure settings
-// var targetResolutionScale = 1.0; // for screenshots with higher resolution set to 2.0 or even 3.0
-// var timeout = 10000; // in ms
+var targetResolutionScale = 1.0; // for screenshots with higher resolution set to 2.0 or even 3.0
+var timeout = 3000; // in ms
   
-// var scene = viewer.scene;
-// if (!scene) {
-//     console.error("No scene");
-// }
+var scene = viewer.scene;
+if (!scene) {
+    console.error("No scene");
+}
 
-// // define callback functions
-// var prepareScreenshot = function(){
-//     var canvas = scene.canvas;    
-//     viewer.resolutionScale = targetResolutionScale;
-//     scene.preRender.removeEventListener(prepareScreenshot);
-//     // take snapshot after defined timeout to allow scene update (ie. loading data)
-//     setTimeout(function(){
-//         scene.postRender.addEventListener(takeScreenshot);
-//     }, timeout);
-// }
+// scene.postRender.addEventListener(takeScreenshot);
+let i = 0;
+var takeScreenshot = function(){ 
+    i += 1;
+    if (i%2 > 0 ) return;
+    scene.postRender.removeEventListener(takeScreenshot);
+    // scene.preRender.addEventListener(prepareScreenshot);
+    var canvas = scene.canvas;
+    canvas.toBlob(function(blob){
+        var url = URL.createObjectURL(blob);
+        downloadURI(url, "./video/f"+i+".png");
+        // reset resolutionScale
+        // viewer.resolutionScale = 1.0;
+    });
+}
 
-// var takeScreenshot = function(){    
-//     scene.postRender.removeEventListener(takeScreenshot);
-//     var canvas = scene.canvas;
-//     canvas.toBlob(function(blob){
-//         var url = URL.createObjectURL(blob);
-//         downloadURI(url, "snapshot-" + targetResolutionScale.toString() + "x.png");
-//         // reset resolutionScale
-//         viewer.resolutionScale = 1.0;
-//     });
-// }
 
-// scene.preRender.addEventListener(prepareScreenshot);
 
-// function downloadURI(uri, name) {
-//     var link = document.createElement("a");
-//     link.download = name;
-//     link.href = uri;
-//     // mimic click on "download button"
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-//     delete link;
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    // mimic click on "download button"
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
+}
 // - mostrar texto citado -
  
