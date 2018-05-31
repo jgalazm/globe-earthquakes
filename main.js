@@ -45,8 +45,8 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     skyBox: false,
     preserveDrawingBuffer:true
 });
-// viewer.camera.rotateUp(0.4);
-
+viewer.camera.rotateUp(0.4);
+viewer.camera.zoomIn(8.5e6);
 // cameraPos = viewer.camera.positionCartographic;
 
 
@@ -81,18 +81,6 @@ $.getJSON(qString, function(data){
         let coordinates = feature.geometry.coordinates;
 
 
-        // viewer.entities.add({
-        //     show:true,
-        //     position: Cesium.Cartesian3.fromDegrees( coordinates[0], coordinates[1] , 150000),
-        //     ellipse : {
-        //         semiMinorAxis : 300000.0,
-        //         semiMajorAxis : 300000.0,
-        //         height: 200000.0,
-        //         material : Cesium.Color.GREEN,
-        //         outline : true // height must be set for outline to display
-        //     }
-        // });
-            
         let point = {
             "id": "point"+index,
             "availability": date.toISOString()+"/"+dateEnd.toISOString(),
@@ -137,8 +125,9 @@ function dlCanvas() {
 };
 dl.addEventListener('click', dlCanvas, false);
 
-
+let i = 0;
 viewer.clock.onTick.addEventListener(() => {
+    i += 1;
     viewer.camera.rotateRight(-0.01);
     viewer.scene.postRender.addEventListener(takeScreenshot);
 });
@@ -154,19 +143,17 @@ if (!scene) {
 }
 
 // scene.postRender.addEventListener(takeScreenshot);
-let i = 0;
-var takeScreenshot = function(){ 
-    i += 1;
+var takeScreenshot = function(thisscene, time){ 
     if (i%2 > 0 ) return;
-    scene.postRender.removeEventListener(takeScreenshot);
+    thisscene.postRender.removeEventListener(takeScreenshot);
     // scene.preRender.addEventListener(prepareScreenshot);
-    var canvas = scene.canvas;
+    var canvas = thisscene.canvas;
     canvas.toBlob(function(blob){
         var url = URL.createObjectURL(blob);
-        downloadURI(url, "./video/f"+i+".png");
+        downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
         // reset resolutionScale
         // viewer.resolutionScale = 1.0;
-    });
+    }); 
 }
 
 
