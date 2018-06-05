@@ -109,8 +109,8 @@ $.getJSON('output.json', function(data){
                     "rgba" : [255, 255, 255, 255]
                 },
                 "outlineWidth": 2,
-                semiMinorAxis : magnitudeToRadius(feature.properties.mag)*10000,
-                semiMajorAxis : magnitudeToRadius(feature.properties.mag)*10000,
+                semiMinorAxis : magnitudeToRadius(feature.mag)*10000,
+                semiMajorAxis : magnitudeToRadius(feature.mag)*10000,
             }
         }
 
