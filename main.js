@@ -105,7 +105,7 @@ $.getJSON(qString, function(data){
                 "outlineColor": {
                     "rgba" : [255, 255, 255, 255]
                 },
-                "outlineWidth": 100,
+                "outlineWidth": 2,
                 semiMinorAxis : magnitudeToRadius(feature.properties.mag)*10000,
                 semiMajorAxis : magnitudeToRadius(feature.properties.mag)*10000,
             }
@@ -144,19 +144,21 @@ if (!scene) {
 
 // scene.postRender.addEventListener(takeScreenshot);
 var takeScreenshot = function(thisscene, time){ 
-    if (i%2 > 0 ) return;
+    // if (i%2 > 0 ) return;
+    let filename = 'v'+(i+'').padStart(5,'0');
     thisscene.postRender.removeEventListener(takeScreenshot);
     // scene.preRender.addEventListener(prepareScreenshot);
     var canvas = thisscene.canvas;
     canvas.toBlob(function(blob){
         var url = URL.createObjectURL(blob);
-        downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
+        downloadURI(url, filename + ".png");
         // reset resolutionScale
         // viewer.resolutionScale = 1.0;
     }); 
 }
 
 
+// ffmpeg -framerate 1/5 -i *%05d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
 
 function downloadURI(uri, name) {
     var link = document.createElement("a");
