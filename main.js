@@ -70,20 +70,23 @@ var magnitudeToRadius = function(Mw){
   
 
 
-$.getJSON(qString, function(data){
+$.getJSON('output.json', function(data){
     data.features.forEach(function(feature, index){
-        let date = new Date(feature.properties.time);
+        if(index > 500){
+            return;
+        }
+        let date = new Date(feature.time);
         let dateBlanco = new Date(date.getTime());
         dateBlanco.setMonth(dateBlanco.getMonth()+1);
 
         let dateEnd = new Date(date.getTime());
         dateEnd.setMonth(dateEnd.getMonth()+15);
-        let coordinates = feature.geometry.coordinates;
+        let coordinates = feature.coordinates;
 
 
         let point = {
             "id": "point"+index,
-            "availability": date.toISOString()+"/"+dateEnd.toISOString(),
+            "availability": date.toISOString()+"/2019-08-04T16:00:40Z",
             "position": {
                 "cartographicDegrees": [
                     date.toISOString(), coordinates[0], coordinates[1] , 150000,
@@ -106,8 +109,8 @@ $.getJSON(qString, function(data){
                     "rgba" : [255, 255, 255, 255]
                 },
                 "outlineWidth": 100,
-                semiMinorAxis : magnitudeToRadius(feature.properties.mag)*10000,
-                semiMajorAxis : magnitudeToRadius(feature.properties.mag)*10000,
+                semiMinorAxis : magnitudeToRadius(feature.mag)*10000*5,
+                semiMajorAxis : magnitudeToRadius(feature.mag)*10000*5,
             }
         }
 
@@ -128,13 +131,13 @@ dl.addEventListener('click', dlCanvas, false);
 let i = 0;
 viewer.clock.onTick.addEventListener(() => {
     i += 1;
-    viewer.camera.rotateRight(-0.01);
+    viewer.camera.rotateRight(-0.01/3);
     viewer.scene.postRender.addEventListener(takeScreenshot);
 });
 
 // solucion posible: https://groups.google.com/forum/#!topic/cesium-dev/FdQk03zgOMI
 // // configure settings
-var targetResolutionScale = 1.0; // for screenshots with higher resolution set to 2.0 or even 3.0
+var targetResolutionScale = 3.0; // for screenshots with higher resolution set to 2.0 or even 3.0
 var timeout = 3000; // in ms
   
 var scene = viewer.scene;
@@ -150,7 +153,7 @@ var takeScreenshot = function(thisscene, time){
     var canvas = thisscene.canvas;
     canvas.toBlob(function(blob){
         var url = URL.createObjectURL(blob);
-        downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
+        // downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
         // reset resolutionScale
         // viewer.resolutionScale = 1.0;
     }); 
