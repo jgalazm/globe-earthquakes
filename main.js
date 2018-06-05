@@ -45,18 +45,10 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
     skyBox: false,
     preserveDrawingBuffer:true
 });
-viewer.camera.rotateUp(0.4);
+viewer.camera.rotateUp(0.5);
 viewer.camera.zoomIn(8.5e6);
 // cameraPos = viewer.camera.positionCartographic;
 
-
-var baseQueryString = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson"
-var startTime = "&starttime=1990-01-01"
-var endTime = "&endtime=2116-12-31"
-var minMagnitudeString = "&minmagnitude=6.5"
-var maxMagnitudeString = "&maxmagnitude=10"
-var productType = "&producttype=moment-tensor"
-var qString = baseQueryString + startTime + endTime + minMagnitudeString +maxMagnitudeString
 
 rmax = 15;
 Mwmax = 7;
@@ -66,16 +58,39 @@ var magnitudeToRadius = function(Mw){
      r=1 implies Mw = Mwmax*/
     var M0 =  Math.pow(10.0, 1.5*(Mw-Mwmax));
     return Math.pow(M0,1/3.)*rmax;
-  };
-  
+};
 
+let mwToAxisSize = (mw)=>{
+    return magnitudeToRadius(mw)*10000*0.5;
+}
 
+let addCircle = (pos, mw, lw)=>{
+    var circle = viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(pos[0],pos[1], 150000.0),
+        name : 'Green circle at height with outline',
+        ellipse : {
+            semiMinorAxis : mwToAxisSize(mw),
+            semiMajorAxis : mwToAxisSize(mw),
+            height: 200000.0,
+            material : new Cesium.Color(1.0, 1.0, 0.0, 0.0),
+            outline : true, // height must be set for outline to display,
+            outlineWidth: 1
+        }
+    });
+}
+
+// addCircle([-135, -4.8],5,1);
+addCircle([-135, 0],6,1);
+addCircle([-135, 0.3],7,2);
+addCircle([-135, 1.76],8,2);
+addCircle([-135, 6.2],9,2);
 $.getJSON('output.json', function(data){
     data.features.forEach(function(feature, index){
         if(index > 500){
             return;
         }
         let date = new Date(feature.time);
+        console.log(date);
         let dateBlanco = new Date(date.getTime());
         dateBlanco.setMonth(dateBlanco.getMonth()+1);
 
@@ -89,8 +104,8 @@ $.getJSON('output.json', function(data){
             "availability": date.toISOString()+"/2019-08-04T16:00:40Z",
             "position": {
                 "cartographicDegrees": [
-                    date.toISOString(), coordinates[0], coordinates[1] , 150000,
-                    "2019-08-04T16:00:40Z", coordinates[0], coordinates[1], 150000
+                    date.toISOString(), coordinates[0], coordinates[1] , 150000+index,
+                    "2019-08-04T16:00:40Z", coordinates[0], coordinates[1], 150000+index
                 ]
             },
             "ellipse": {
@@ -109,8 +124,9 @@ $.getJSON('output.json', function(data){
                     "rgba" : [255, 255, 255, 255]
                 },
                 "outlineWidth": 2,
-                semiMinorAxis : magnitudeToRadius(feature.mag)*10000,
-                semiMajorAxis : magnitudeToRadius(feature.mag)*10000,
+                semiMinorAxis :  mwToAxisSize(feature.mag),
+                        
+                semiMajorAxis : mwToAxisSize(feature.mag),
             }
         }
 
@@ -131,13 +147,17 @@ dl.addEventListener('click', dlCanvas, false);
 let i = 0;
 viewer.clock.onTick.addEventListener(() => {
     i += 1;
-    viewer.camera.rotateRight(-0.01/3);
+    // viewer.camera.rotateRight(-0.01/3);
     viewer.scene.postRender.addEventListener(takeScreenshot);
+    // console.log(Cesium.JulianDate.toIso8601(viewer.clock.currentTime))
 });
+
+viewer.clock.startTime = Cesium.JulianDate.fromIso8601("2000-01-01T00:00:01.0Z")
+
 
 // solucion posible: https://groups.google.com/forum/#!topic/cesium-dev/FdQk03zgOMI
 // // configure settings
-var targetResolutionScale = 3.0; // for screenshots with higher resolution set to 2.0 or even 3.0
+var targetResolutionScale = 10.0; // for screenshots with higher resolution set to 2.0 or even 3.0
 var timeout = 3000; // in ms
   
 var scene = viewer.scene;
@@ -152,13 +172,13 @@ var takeScreenshot = function(thisscene, time){
     thisscene.postRender.removeEventListener(takeScreenshot);
     // scene.preRender.addEventListener(prepareScreenshot);
     var canvas = thisscene.canvas;
-    canvas.toBlob(function(blob){
-        var url = URL.createObjectURL(blob);
+    // canvas.toBlob(function(blob){
+    //     var url = URL.createObjectURL(blob);
 
         // downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
         // reset resolutionScale
         // viewer.resolutionScale = 1.0;
-    }); 
+    // }); 
 }
 
 
