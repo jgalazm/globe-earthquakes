@@ -47,6 +47,12 @@ var viewer = new Cesium.Viewer('cesiumContainer', {
 });
 viewer.camera.rotateUp(0.5);
 viewer.camera.zoomIn(8.5e6);
+
+var layers = viewer.scene.imageryLayers;
+layers.addImageryProvider(new Cesium.SingleTileImageryProvider({
+    url : 'imagen.png',
+    rectangle : Cesium.Rectangle.fromDegrees(-180.0, -90, 180, 90)
+}));
 // cameraPos = viewer.camera.positionCartographic;
 
 
@@ -84,57 +90,63 @@ addCircle([-135, 0],6,1);
 addCircle([-135, 0.3],7,2);
 addCircle([-135, 1.76],8,2);
 addCircle([-135, 6.2],9,2);
-$.getJSON('output.json', function(data){
-    data.features.forEach(function(feature, index){
-        if(index > 500){
-            return;
-        }
-        let date = new Date(feature.time);
-        console.log(date);
-        let dateBlanco = new Date(date.getTime());
-        dateBlanco.setMonth(dateBlanco.getMonth()+1);
 
-        let dateEnd = new Date(date.getTime());
-        dateEnd.setMonth(dateEnd.getMonth()+15);
-        let coordinates = feature.coordinates;
+// layers.addImageryProvider(new Cesium.SingleTileImageryProvider({
+//     url : '../images/Cesium_Logo_overlay.png',
+//     rectangle : Cesium.Rectangle.fromDegrees(-75.0, 28.0, -67.0, 29.75)
+// }));
+
+// $.getJSON('output.json', function(data){
+//     data.features.forEach(function(feature, index){
+//         // if(index > 500){
+//         //     return;
+//         // }
+//         let date = new Date(feature.time);
+//         console.log(date);
+//         let dateBlanco = new Date(date.getTime());
+//         dateBlanco.setMonth(dateBlanco.getMonth()+10);
+
+//         let dateEnd = new Date(date.getTime());
+//         dateEnd.setMonth(dateEnd.getMonth()+35);
+//         let coordinates = feature.coordinates;
 
 
-        let point = {
-            "id": "point"+index,
-            "availability": date.toISOString()+"/2019-08-04T16:00:40Z",
-            "position": {
-                "cartographicDegrees": [
-                    date.toISOString(), coordinates[0], coordinates[1] , 150000+index,
-                    "2019-08-04T16:00:40Z", coordinates[0], coordinates[1], 150000+index
-                ]
-            },
-            "ellipse": {
-                "material": {
-                    "solidColor": {
-                        "color": {
-                         "rgba": [ date.toISOString(), 255, 255, 255, 255,
-                            dateBlanco.toISOString(), 164, 125, 64, 255,
-                            "2019-08-04T16:00:40Z", 128, 128, 0, 255]   
-                        }
-                    }
-                },
-                height: 2000.0,
-                outline:true,
-                "outlineColor": {
-                    "rgba" : [255, 255, 255, 255]
-                },
-                "outlineWidth": 2,
-                semiMinorAxis :  mwToAxisSize(feature.mag),
+//         let point = {
+//             "id": "point"+index,
+//             "availability": date.toISOString()+"/2019-08-04T16:00:40Z",
+//             "position": {
+//                 "cartographicDegrees": [
+//                     date.toISOString(), coordinates[0], coordinates[1] , 150000+index,
+//                     "2019-08-04T16:00:40Z", coordinates[0], coordinates[1], 150000+index
+//                 ]
+//             },
+//             "ellipse": {
+//                 "material": {
+//                     "solidColor": {
+//                         "color": {
+//                          "rgba": [ date.toISOString(), 255, 255, 255, 255,
+//                             dateBlanco.toISOString(), 164, 125, 64, 255,
+//                             "2019-08-04T16:00:40Z", 128, 128, 0, 255]   
+//                         }
+//                     }
+//                 },
+//                 height: 2000.0,
+//                 outline:true,
+//                 "outlineColor": {
+//                     "rgba" : [255, 255, 255, 255]
+//                 },
+//                 "outlineWidth": 2,
+//                 semiMinorAxis :  mwToAxisSize(feature.mag),
                         
-                semiMajorAxis : mwToAxisSize(feature.mag),
-            }
-        }
+//                 semiMajorAxis : mwToAxisSize(feature.mag),
+//             }
+//         }
 
-        czml.push(point);
-    });
+//         czml.push(point);
+//     });
 
-    viewer.dataSources.add(Cesium.CzmlDataSource.load(czml));
-});
+//     viewer.dataSources.add(Cesium.CzmlDataSource.load(czml));
+// });
 
 // let dl = document.getElementById('dl');
 let dl = document.createElement('a');
@@ -147,7 +159,7 @@ dl.addEventListener('click', dlCanvas, false);
 let i = 0;
 viewer.clock.onTick.addEventListener(() => {
     i += 1;
-    // viewer.camera.rotateRight(-0.01/3);
+    viewer.camera.rotateRight(-0.01/3);
     viewer.scene.postRender.addEventListener(takeScreenshot);
     // console.log(Cesium.JulianDate.toIso8601(viewer.clock.currentTime))
 });
@@ -157,9 +169,10 @@ viewer.clock.startTime = Cesium.JulianDate.fromIso8601("2000-01-01T00:00:01.0Z")
 
 // solucion posible: https://groups.google.com/forum/#!topic/cesium-dev/FdQk03zgOMI
 // // configure settings
-var targetResolutionScale = 10.0; // for screenshots with higher resolution set to 2.0 or even 3.0
+var targetResolutionScale = 3.0; // for screenshots with higher resolution set to 2.0 or even 3.0r
 var timeout = 3000; // in ms
-  
+
+viewer.resolutionScale = 2.0;
 var scene = viewer.scene;
 if (!scene) {
     console.error("No scene");
@@ -175,9 +188,8 @@ var takeScreenshot = function(thisscene, time){
     // canvas.toBlob(function(blob){
     //     var url = URL.createObjectURL(blob);
 
-        // downloadURI(url, "./video/f"+   Cesium.JulianDate.toIso8601(time)+"_"+i+".png");
-        // reset resolutionScale
-        // viewer.resolutionScale = 1.0;
+    //     // downloadURI(url, "./video/f"+ filename+  Cesium.JulianDate.toIso8601(time)+"_"+filename+".png");
+    //     // reset resolutionScale
     // }); 
 }
 
